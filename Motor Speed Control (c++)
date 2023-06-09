@@ -1,58 +1,110 @@
-#include<pigpio.h>
+#include <unistd.h>
+#include <iostream>
+#include <pigpio.h>
+#include <string>
+#include <sstream>
+#include <chrono>
+#include <thread>
+#include <gtkmm.h>
 
-# Setting general parameters
-tstop = 2;  # Execution duration (s)
-tsample = 0.01;  # Sampling period (s)
-wsp = 20;  # Motor speed set point (rad/s)
-tau = 0.1;  # Speed low-pass filter response time (s)
+using namespace std;
 
-# Creating PID controller object
-kp = 0.15;
-ki = 0.35;
-kd = 0.01;
-taupid=0.01;
-pid = PID(tsample, kp, ki, kd, umin=0, tau=taupid);
+int main(int argc, char *argv[]) {
+    if (gpioInitialise() < 0) {
+        cout << "GPIO Initialization failed." << endl;
+        return 1;
+    }
 
-# Creating motor object using GPIO pins 16, 17, and 18
-# (using SN754410 quadruple half-H driver chip)
-# Integrated encoder on GPIO pins 24 and 25.
-mymotor= Motor(gpioSetMode(16,PI_INPUT), gpioSetMode(24,PI_INPUT), gpioSetMode(25,PI_INPUT), gpioPWM(17,255), gpioPWM(18,255), encoderppm=300.5);
-mymotor.reset_angle();
+    int motorPin1 = 17;
+    int motorPin2 = 18;
+    int switchPin = 27;
+    gpioSetMode(motorPin1, PI_OUTPUT);
+    gpioSetMode(motorPin2, PI_OUTPUT);
+    gpioSetMode(switchPin, PI_OUTPUT);
 
-# Initializing previous and current values
-ucurr = 0  # x[n]; (step input)
-wfprev = 0  # y[n-1];
-wfcurr = 0  # y[n];
+    double motorSpeedForward = 0;
+    double motorSpeedBackward = 0;
 
-# Initializing variables and starting clock
-thetaprev = 0;
-tprev = 0;
-tcurr = 0;
-tstart = time.perf_counter();
+    auto toggleSwitch = [&switchPin]() {
+        if (gpioRead(switchPin) == 0) {
+            gpioWrite(switchPin, 1);
+        } else {
+            gpioWrite(switchPin, 0);
+        }
+    };
 
-# Running execution loop
-printf('Running code for', tstop, 'seconds ...');
-while(tcurr <= tstop)
-    # Pausing for `tsample` to give CPU time to process encoder signal
-    time.sleep(tsample);
-    # Getting current time (s)
-    tcurr = time.perf_counter() - tstart;
-    # Getting motor shaft angular position: I/O (data in)
-    thetacurr = mymotor.get_angle();
-    # Calculating motor speed (rad/s)
-    wcurr = np.pi/180 * (thetacurr-thetaprev)/(tcurr-tprev);
-    # Filtering motor speed signal
-    wfcurr = tau/(tau+tsample)*wfprev + tsample/(tau+tsample)*wcurr;
-    wfprev = wfcurr;
-    # Calculating closed-loop output
-    ucurr = pid.control(wsp, wfcurr);
-    # Assigning motor output: I/O (data out)
-    mymotor.set_output(ucurr);
-    # Updating previous values
-    thetaprev = thetacurr;
-    tprev = tcurr;
+    auto forwardSpeedIncrease = [&motorPin1, &motorPin2, &motorSpeedForward]() {
+        motorSpeedForward += 0.1;
+        if (motorSpeedForward >= 1) {
+            motorSpeedForward = 1;
+        }
+        gpioPWM(motorPin1, motorSpeedForward * 255);
+        gpioPWM(motorPin2, 0);
+    };
 
-printf('Done.');
-# Stopping motor and releasing GPIO pins
-mymotor.set_output(0, brake=True);
-del mymotor;
+    auto forwardSpeedReduce = [&motorPin1, &motorPin2, &motorSpeedForward]() {
+        motorSpeedForward -= 0.1;
+        if (motorSpeedForward <= 0) {
+            motorSpeedForward = 0;
+        }
+        gpioPWM(motorPin1, motorSpeedForward * 255);
+        gpioPWM(motorPin2, 0);
+    };
+
+    auto backwardSpeedIncrease = [&motorPin1, &motorPin2, &motorSpeedBackward]() {
+        motorSpeedBackward += 0.1;
+        if (motorSpeedBackward >= 1) {
+            motorSpeedBackward = 1;
+        }
+        gpioPWM(motorPin1, 0);
+        gpioPWM(motorPin2, motorSpeedBackward * 255);
+    };
+
+    auto backwardSpeedReduce = [&motorPin1, &motorPin2, &motorSpeedBackward]() {
+        motorSpeedBackward -= 0.1;
+        if (motorSpeedBackward <= 0) {
+            motorSpeedBackward = 0;
+        }
+        gpioPWM(motorPin1, 0);
+        gpioPWM(motorPin2, motorSpeedBackward * 255);
+    };
+
+    Gtk::Main kit(argc, argv);
+    Gtk::Window window;
+    window.set_title("GUI Development");
+    window.set_default_size(800, 600);
+
+    Gtk::Grid grid;
+    window.add(grid);
+
+    Gtk::Label message("Single Motor Control Interface");
+    grid.attach(message, 4, 0, 1, 1);
+
+    Gtk::Button button0("Start");
+    button0.signal_clicked().connect(sigc::ptr_fun(&toggleSwitch));
+    grid.attach(button0, 4, 1, 1, 1);
+
+    Gtk::Button button1("+");
+    button1.signal_clicked().connect(sigc::ptr_fun(&forwardSpeedIncrease));
+    grid.attach(button1, 3, 2, 1, 1);
+
+    Gtk::Button button2("-");
+    button2.signal_clicked().connect(sigc::ptr_fun(&forwardSpeedReduce));
+    grid.attach(button2, 5, 2, 1, 1);
+
+    Gtk::Button button3("+");
+    button3.signal_clicked().connect(sigc::ptr_fun(&backwardSpeedIncrease));
+    grid.attach(button3, 3, 3, 1, 1);
+
+    Gtk::Button button4("-");
+    button4.signal_clicked().connect(sigc::ptr_fun(&backwardSpeedReduce));
+    grid.attach(button4, 5, 3, 1, 1);
+
+    window.show_all();
+
+    Gtk::Main::run(window);
+
+    gpioTerminate();
+
+    return 0;
+}
