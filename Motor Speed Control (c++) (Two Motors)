@@ -1,7 +1,7 @@
 #include <iostream>
 #include <time.h>
-#include "guizero.h"
-#include "gpiozero.h"
+#include <guizero.h>
+#include <gpiozero.h>
 
 Robot motor(left=(4, 14), right=(17, 18));
 LED motorSwitch(27);
