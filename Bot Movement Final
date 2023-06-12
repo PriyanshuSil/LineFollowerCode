@@ -1,0 +1,91 @@
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <pigpio.h>
+
+#define LEFT_PIN1 7
+#define LEFT_PIN2 8
+#define RIGHT_PIN1 9
+#define RIGHT_PIN2 10
+#define IR1_PIN 16
+#define IR2_PIN 18
+#define IR3_PIN 32
+#define IR4_PIN 22
+#define IR5_PIN 36
+#define IR6_PIN 38
+#define IR7_PIN 40
+#define IR8_PIN 37
+
+int main() {
+    gpioInitialise();
+    gpioSetMode(LEFT_PIN1, PI_OUTPUT);
+    gpioSetMode(LEFT_PIN2, PI_OUTPUT);
+    gpioSetMode(RIGHT_PIN1, PI_OUTPUT);
+    gpioSetMode(RIGHT_PIN2, PI_OUTPUT);
+    gpioSetMode(IR1_PIN, PI_INPUT);
+    gpioSetMode(IR2_PIN, PI_INPUT);
+    gpioSetMode(IR3_PIN, PI_INPUT);
+    gpioSetMode(IR4_PIN, PI_INPUT);
+    gpioSetMode(IR5_PIN, PI_INPUT);
+    gpioSetMode(IR6_PIN, PI_INPUT);
+    gpioSetMode(IR7_PIN, PI_INPUT);
+    gpioSetMode(IR8_PIN, PI_INPUT);
+
+    gpioWrite(LEFT_PIN1, 0);
+    gpioWrite(LEFT_PIN2, 0);
+    gpioWrite(RIGHT_PIN1, 0);
+    gpioWrite(RIGHT_PIN2, 0);
+
+    float speed = 0.65;
+    int ir1_detect, ir2_detect, ir3_detect, ir4_detect, ir5_detect, ir6_detect, ir7_detect, ir8_detect, left_mot = 0, right_mot = 0;
+
+    while (true) {
+        ir1_detect = gpioRead(IR1_PIN);              //left sensor
+        ir2_detect = gpioRead(IR2_PIN);              //left sensor
+        ir3_detect = gpioRead(IR3_PIN);              //left sensor
+        ir4_detect = gpioRead(IR4_PIN);              //middle sensor
+        ir5_detect = gpioRead(IR5_PIN);              //middle sensor
+        ir6_detect = gpioRead(IR6_PIN);              //right sensor
+        ir7_detect = gpioRead(IR7_PIN);              //right sensor 
+        ir8_detect = gpioRead(IR8_PIN);              //right sensor
+       
+        // Moving Forward
+        if (ir1_detect == 1 && ir2_detect == 1 && ir3_detect == 1 && ir4_detect == 1 && ir5_detect == 1 && ir6_detect == 1 && ir7_detect == 1 && ir8_detect == 1) {
+            left_mot = 1;
+            right_mot = 1;
+        }
+
+        //Turning Right
+        if (ir1_detect == 0 && ir2_detect == 0 && ir3_detect == 0 && ir4_detect == 1 && ir5_detect == 1 && ir6_detect == 1 && ir7_detect == 1 && ir8_detect == 1) {
+            left_mot = -1;
+            right_mot = 1;
+        }
+
+        //Turning Left
+        if (ir1_detect == 1 && ir2_detect == 1 && ir3_detect == 1 && ir4_detect == 1 && ir5_detect == 1 && ir6_detect == 0 && ir7_detect == 0 && ir8_detect == 0) {
+            left_mot = 1;
+            right_mot = -1;
+        }
+        
+        //Breaking
+        if (ir1_detect == 0 && ir2_detect == 0 && ir3_detect == 0 && ir4_detect == 0 && ir5_detect == 0 && ir6_detect == 0 && ir7_detect == 0 && ir8_detect == 0) {
+            left_mot = -1;
+            right_mot = -1;
+        }
+
+        gpioPWM(LEFT_PIN1, (int)((left_mot * speed + 1) * 127.5));
+        gpioPWM(LEFT_PIN2, 0);
+        gpioPWM(RIGHT_PIN1, (int)((right_mot * speed + 1) * 127.5));
+        gpioPWM(RIGHT_PIN2, 0);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    gpioWrite(LEFT_PIN1, 0);
+    gpioWrite(LEFT_PIN2, 0);
+    gpioWrite(RIGHT_PIN1, 0);
+    gpioWrite(RIGHT_PIN2, 0);
+
+    gpioTerminate();
+    return 0;
+}
