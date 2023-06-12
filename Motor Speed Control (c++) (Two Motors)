@@ -71,23 +71,15 @@ void backwardSpeedReduce(){
         motorSpeedBackward = 0;
     }
 }
-
-void forwardThenBreak(){
-    motor_driver motor(4, 5, 2, 3);
-    motor.speed(50, 50);
-    this_thread::sleep_for(chrono::seconds(1));
-    motor.brake();
- }
     
 int main(){
     App app("GUI Development", 600, 800);
     Text message(app, "Dual Motor Control Interface", 4, 0);
-    PushButton button0(app, toggleSwitch, "Start", 10, 3, 1, 1);
-    PushButton button1(app, forwardSpeedIncrease, "Frwd Speed +", 10, 3, 1, 2);
-    PushButton button2(app, backwardSpeedReduce, "Bckwd Speed -", 10, 3, 2, 1);
-    PushButton button3(app, backwardSpeedIncrease, "Bckwd Speed +", 10, 3, 2, 2);
-    PushButton button4(app, forwardSpeedReduce, "Frwd Speed -", 10, 3, 3, 1);
-    PushButton button5(app, forwardThenBreak, "Break", 10, 3, 3, 2);
+    PushButton button0(app, toggleSwitch, "Start", 10, 3, 2, 4);
+    PushButton button1(app, forwardSpeedIncrease, "Frwd Speed +", 10, 3, 2, 3);
+    PushButton button2(app, backwardSpeedReduce, "Bckwd Speed -", 10, 3, 2, 5);
+    PushButton button3(app, backwardSpeedIncrease, "Bckwd Speed +", 10, 3, 1, 4);
+    PushButton button4(app, forwardSpeedReduce, "Frwd Speed -", 10, 3, 3, 4);
     app.display();
     return 0;
 }
