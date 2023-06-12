@@ -1,0 +1,62 @@
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <pigpio.h>
+
+#define LEFT_PIN1 7
+#define LEFT_PIN2 8
+#define RIGHT_PIN1 9
+#define RIGHT_PIN2 10
+#define LEFT_SENSOR_PIN 17
+#define RIGHT_SENSOR_PIN 27
+
+int main() {
+    gpioInitialise();
+    gpioSetMode(LEFT_PIN1, PI_OUTPUT);
+    gpioSetMode(LEFT_PIN2, PI_OUTPUT);
+    gpioSetMode(RIGHT_PIN1, PI_OUTPUT);
+    gpioSetMode(RIGHT_PIN2, PI_OUTPUT);
+    gpioSetMode(LEFT_SENSOR_PIN, PI_INPUT);
+    gpioSetMode(RIGHT_SENSOR_PIN, PI_INPUT);
+
+    gpioWrite(LEFT_PIN1, 0);
+    gpioWrite(LEFT_PIN2, 0);
+    gpioWrite(RIGHT_PIN1, 0);
+    gpioWrite(RIGHT_PIN2, 0);
+
+    float speed = 0.65;
+    int left_detect, right_detect, left_mot = 0, right_mot = 0;
+
+    while (true) {
+        left_detect = gpioRead(LEFT_SENSOR_PIN);
+        right_detect = gpioRead(RIGHT_SENSOR_PIN);
+
+        if (left_detect == 0 && right_detect == 0) {
+            left_mot = 1;
+            right_mot = 1;
+        }
+
+        if (left_detect == 0 && right_detect == 1) {
+            left_mot = -1;
+        }
+
+        if (left_detect == 1 && right_detect == 0) {
+            right_mot = -1;
+        }
+
+        gpioPWM(LEFT_PIN1, (int)((left_mot * speed + 1) * 127.5));
+        gpioPWM(LEFT_PIN2, 0);
+        gpioPWM(RIGHT_PIN1, (int)((right_mot * speed + 1) * 127.5));
+        gpioPWM(RIGHT_PIN2, 0);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    gpioWrite(LEFT_PIN1, 0);
+    gpioWrite(LEFT_PIN2, 0);
+    gpioWrite(RIGHT_PIN1, 0);
+    gpioWrite(RIGHT_PIN2, 0);
+
+    gpioTerminate();
+    return 0;
+}
