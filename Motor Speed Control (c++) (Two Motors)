@@ -7,6 +7,9 @@
 #include <thread>
 #include <gtkmm.h>
 
+using namespace std;
+Gtk::Button *forwardSpeedIncrease, *forwardSpeedReduce, *backwardSpeedIncrease, *backwardSpeedReduce, *forwardThenBreak = 0;
+
 Robot motor(left=(4, 14), right=(17, 18));
 LED motorSwitch(27);
 
