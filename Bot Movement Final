@@ -1,8 +1,18 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <sensors.h>
+#include <motors.h>
+#include <lcd.h>
 #include <pigpio.h>
 
+#define BLACK 1
+#define WHITE 0
+#define LEFT 0
+#define RIGHT 1
+#define line_color BLACK
+#define ROTATE_SPEED 100
+#define MAX_SPEED 200
 #define LEFT_PIN1 7
 #define LEFT_PIN2 8
 #define RIGHT_PIN1 9
@@ -15,6 +25,16 @@
 #define IR6_PIN 38
 #define IR7_PIN 40
 #define IR8_PIN 37
+#define IR9_PIN 34
+
+void init_sensors(void);
+void get_sensors_binary(void);
+void caliberate_sensors(void);
+uint8_t get_sensor_binary(void);
+void get_sensors_analog(uint16_t *sensorValues);
+uint16_t analog_read(uint8_t inputChannel);
+uint8_t count_binary(uint8_t binary);
+uint8_t get_front_sensor(void);
 
 int main() {
     gpioInitialise();
@@ -30,6 +50,7 @@ int main() {
     gpioSetMode(IR6_PIN, PI_INPUT);
     gpioSetMode(IR7_PIN, PI_INPUT);
     gpioSetMode(IR8_PIN, PI_INPUT);
+    gpioSetMode(IR9_PIN, PI_INPUT);
 
     gpioWrite(LEFT_PIN1, 0);
     gpioWrite(LEFT_PIN2, 0);
@@ -37,7 +58,7 @@ int main() {
     gpioWrite(RIGHT_PIN2, 0);
 
     float speed = 0.65;
-    int ir1_detect, ir2_detect, ir3_detect, ir4_detect, ir5_detect, ir6_detect, ir7_detect, ir8_detect, left_mot = 0, right_mot = 0;
+    int ir1_detect, ir2_detect, ir3_detect, ir4_detect, ir5_detect, ir6_detect, ir7_detect, ir8_detect, ir9_detect, left_mot = 0, right_mot = 0;
 
     while (true) {
         ir1_detect = gpioRead(IR1_PIN);              //left sensor
@@ -48,7 +69,10 @@ int main() {
         ir6_detect = gpioRead(IR6_PIN);              //right sensor
         ir7_detect = gpioRead(IR7_PIN);              //right sensor 
         ir8_detect = gpioRead(IR8_PIN);              //right sensor
-       
+        
+        ir9_detect = gpioRead(IR9_PIN);              //forward sensor
+
+    
         // Moving Forward
         if (ir1_detect == 0 && ir2_detect == 1 && ir3_detect == 1 && ir4_detect == 1 && ir5_detect == 1 && ir6_detect == 1 && ir7_detect == 1 && ir8_detect == 0) {
             left_mot = 1;
