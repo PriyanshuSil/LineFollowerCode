@@ -74,7 +74,7 @@ int main() {
         }
 
         //Turning Sharp Right
-       if (ir1_detect == 0 && ir2_detect == 1 && ir3_detect == 1 && ir4_detect == 1 && ir5_detect == 1 && ir6_detect == 1 && ir7_detect == 1 && ir8_detect == 1) {            
+       if (ir1_detect == 0 && ir2_detect == 0 && ir3_detect == 0 && ir4_detect == 0 && ir5_detect == 0 && ir6_detect == 0 && ir7_detect == 0 && ir8_detect == 1) {            
             set_motors(MAX_SPEED,-(0.75*MAX_SPEED));
         }
 
@@ -83,45 +83,52 @@ int main() {
             set_motors(-(0.75*MAX_SPEED, MAX_SPEED);
         }
         
-        //Turning Regular Left
+        //Turning 90 degree Left
         if (ir1_detect == 1 && ir2_detect == 1 && ir3_detect == 1 && ir4_detect == 0 && ir5_detect == 0 && ir6_detect == 0 && ir7_detect == 0 && ir8_detect == 0) {
             set_motors(-(0.25*MAX_SPEED), MAX_SPEED);
         }
 
-        //Turning Right
+        //Turning 90 degree Right
         if (ir1_detect == 0 && ir2_detect == 0 && ir3_detect == 0 && ir4_detect == 0 && ir5_detect == 0 && ir6_detect == 1 && ir7_detect == 1 && ir8_detect == 1) {
             set_motors(MAX_SPEED,-(0.25*MAX_SPEED));
         }
 
-
+        //Turning Left
         if (ir1_detect == 1 && ir2_detect == 1 && ir3_detect == 0 && ir4_detect == 0 && ir5_detect == 0 && ir6_detect == 0 && ir7_detect == 0 && ir8_detect == 0) {
             set_motors(-(0.5*MAX_SPEED), MAX_SPEED);
         }
 
+        //Turning Right
         if (ir1_detect == 0 && ir2_detect == 1 && ir3_detect == 1 && ir4_detect == 0 && ir5_detect == 0 && ir6_detect == 0 && ir7_detect == 0 && ir8_detect == 0) {
             set_motors(0, MAX_SPEED);
         }
 
+        //Turning angular right 1
         if (ir1_detect == 0 && ir2_detect == 0 && ir3_detect == 0 && ir4_detect == 0 && ir5_detect == 0 && ir6_detect == 1 && ir7_detect == 1 && ir8_detect == 0) {
             set_motors(MAX_SPEED, 0);
         }
 
+        //Turning angular right 2
         if (ir1_detect == 0 && ir2_detect == 0 && ir3_detect == 0 && ir4_detect == 0 && ir5_detect == 1 && ir6_detect == 1 && ir7_detect == 0 && ir8_detect == 0) {
             set_motors(MAX_SPEED, 0.5*MAX_SPEED);
         }
 
+        //Turning angular left 1
         if (ir1_detect == 0 && ir2_detect == 0 && ir3_detect == 1 && ir4_detect == 1 && ir5_detect == 0 && ir6_detect == 0 && ir7_detect == 0 && ir8_detect == 0) {
             set_motors(0.5*MAX_SPEED, MAX_SPEED);
         }
 
+        //Turning angular left 2
         if (ir1_detect == 0 && ir2_detect == 1 && ir3_detect == 1 && ir4_detect == 1 && ir5_detect == 0 && ir6_detect == 0 && ir7_detect == 0 && ir8_detect == 0) {
             set_motors(0.25*MAX_SPEED, MAX_SPEED);
         }
 
+        //Acute angle turn towards right
         if (ir1_detect == 0 && ir2_detect == 0 && ir3_detect == 0 && ir4_detect == 0 && ir5_detect == 1 && ir6_detect == 1 && ir7_detect == 1 && ir8_detect == 0) {
             set_motors(MAX_SPEED, 0.25*MAX_SPEED);
         }
 
+        //Acute angle turn towards left
         if (ir1_detect == 0 && ir2_detect == 0 && ir3_detect == 1 && ir4_detect == 1 && ir5_detect == 1 && ir6_detect == 0 && ir7_detect == 0 && ir8_detect == 0) {
             set_motors(MAX_SPEED, 0.5*MAX_SPEED);
         }
